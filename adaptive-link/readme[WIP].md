@@ -9,10 +9,10 @@ In our limited testing, it seems the serial port randomly shuts down after a whi
 "echo /hello/ > /dev/tty/ACM0" will do nothing and return "NAN+hello"
 The code is a bit dirty, have fun :)
 
-## GROUND STATION - control-link.py
-We have hijacked wfb-cli to write out stats to a file (wfb_stats), which  our control-link.py python script reads back, parse and send over serial link. It reads and send data every 600ms
+## GROUND STATION - openipc_controlv2.py
+We have hijacked wfb-cli to write out stats to a file (wfb_stats), which  our control-link.py python script reads back, parse and send over serial link.
 In order for the feedback to work, it means "wfb-cli gs" must be running in the background.
 
-add the following writeLines to your cli.py:
-
-
+see cli.py line 189-194 for the hijack.
+Data is output to wfb_data, session_data, packets_data. Feel free to change and adjust according to your needs.
+If someone feels to help, i think it would be great to have a msgpack parser reading directly from default port 8002 instead of writing/reading to file.
