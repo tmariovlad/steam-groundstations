@@ -20,3 +20,32 @@ In order for the feedback to work, it means "wfb-cli gs" must be running in the 
 
 Data is output to wfb_data, session_data, packets_data. Feel free to change and adjust according to your needs.
 If someone feels to help, i think it would be great to have a msgpack parser reading directly from default port 8002 instead of writing/reading to file.
+
+
+## EXPERIMENTAL WFB_NG Link
+put socat in /usr/bin (ssc30kq / ssc338q)
+open two shells on your drone
+Run in first shell:
+```
+wfb_rx -c 127.0.0.1 -u 5000 -K /etc/drone.key -p 1 -i 7669207 wlan0
+```
+Run in second shell
+```
+socat UDP-RECV:5000 STDOUT | /bin/sh
+```
+
+Now go to your groundstation, open two shells:
+In first shell run:
+```
+sudo wfb_tx -p 1 -u 5000 -K /etc/gs.key -R 456000 -B20 -M 2 -S 1 -L 1 -G short -k 3 -n 4 -i 7669207 -f data wlan1
+```
+In second shell
+```
+socat UDP-RECV:5000 STDOUT | /bin/sh
+```
+you can do "echo Hello" just to see some output confirmed (Hello).
+or try out 
+```
+/etc/init.d/S95majestic restart
+```
+This should restart majestic.
