@@ -41,7 +41,7 @@ sudo wfb_tx -p 1 -u 5000 -K /etc/gs.key -R 456000 -B20 -M 2 -S 1 -L 1 -G short -
 ```
 In second shell
 ```
-socat UDP-RECV:5000 STDOUT | /bin/sh
+socat - UDP-DATAGRAM:127.0.0.1:5000,sp=5000
 ```
 you can do "echo Hello" just to see some output confirmed (Hello).
 or try out 
