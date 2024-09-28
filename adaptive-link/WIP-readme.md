@@ -29,8 +29,8 @@ If you want to point to a specific config file you can run it with adaptive_link
 ## Drone: /etc/rc.init
 You need to install the client application to /usr/bin, and run it once to create the config.cfg. Adapt the config as needed.
 You also want to add "adaptive_link &" to /etc/init.rc and start a companion wfb_rx to recieve the data:
-wfb_rx -c 127.0.0.1 -u 9999 -K /etc/drone.key -p 48 -i 7669206 wlan0 >/dev/null &
-adaptive_link_client --config /usr/bin/config.cfg &
+wfb_rx -c 127.0.0.1 -u 9999 -K /etc/drone.key -p 48 -i 7669206 wlan0 &
+adaptive_link_client --udp-port 9999
 
 To test it on drone side, start wfb_rx manually:
 wfb_rx -c 127.0.0.1 -u 9999 -K /etc/drone.key -p 48 -i 7669206 wlan0
