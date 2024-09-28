@@ -36,9 +36,11 @@ To test it on drone side, start wfb_rx manually:
 wfb_rx -c 127.0.0.1 -u 9999 -K /etc/drone.key -p 48 -i 7669206 wlan0
 
 It should output similar to:
+
 ![image](https://github.com/user-attachments/assets/38a7a1fb-00c7-40d5-bd3e-87fcfc74111b)
 
 If the link is working, now open a separate shell to youre drone and start adaptive link (adaptive_link_client --config /usr/bin/config.cfg):
+
 ![image](https://github.com/user-attachments/assets/21dbc25b-e8be-45f8-8a5b-5cfed14d2b7e)
 the binary name is different on the picture, will change it later, usage will be as described in text above.
 
