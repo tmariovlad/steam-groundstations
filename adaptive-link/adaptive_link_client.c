@@ -14,27 +14,27 @@
 #define CONFIG_FILE "config.cfg"
 #define DEFAULT_VERSION "0.1.0"
 #define DEFAULT_MISSING_MESSAGE_TIMEOUT 1.5
-#define DEFAULT_PAUSE_DURATION 5
-#define DEFAULT_RSSI_CALL_INTERVAL 6
+#define DEFAULT_PAUSE_DURATION 5.0
+#define DEFAULT_RSSI_CALL_INTERVAL 6.0
 #define DEFAULT_PERCENTAGE_CHANGE 5.0
-#define DEFAULT_ANTENNA_VALUE -105   // Default antenna value when missing
-#define DEFAULT_UDP_PORT 9999        // Default UDP port
-#define DEFAULT_FEC_RECOVERY_THRESHOLD 50  // Default FEC recovery threshold
-#define DEFAULT_LOST_PACKAGES_THRESHOLD 5  // Default lost packages threshold
+#define DEFAULT_ANTENNA_VALUE -105      // Default antenna value when missing
+#define DEFAULT_UDP_PORT 9999.0         // Default UDP port as double to allow unified handling
+#define DEFAULT_FEC_RECOVERY_THRESHOLD 50.0
+#define DEFAULT_LOST_PACKAGES_THRESHOLD 5.0
 
 // File paths for recording indicators
 #define RECORDING_STARTED_FILE "/tmp/recording_started"
 #define RECORDING_STOPPED_FILE "/tmp/recording_stopped"
 
-// Global configuration values
+// Global configuration values, all as double for unified handling
 char current_version[16] = DEFAULT_VERSION;
 double missing_message_timeout = DEFAULT_MISSING_MESSAGE_TIMEOUT;
 double pause_duration = DEFAULT_PAUSE_DURATION;
 double rssi_call_interval = DEFAULT_RSSI_CALL_INTERVAL;
 double percentage_change_threshold = DEFAULT_PERCENTAGE_CHANGE;
-int fec_recovery_threshold = DEFAULT_FEC_RECOVERY_THRESHOLD;
-int lost_packages_threshold = DEFAULT_LOST_PACKAGES_THRESHOLD;
-int udp_port = DEFAULT_UDP_PORT;
+double fec_recovery_threshold = DEFAULT_FEC_RECOVERY_THRESHOLD;
+double lost_packages_threshold = DEFAULT_LOST_PACKAGES_THRESHOLD;
+double udp_port = DEFAULT_UDP_PORT;
 
 int parse_data = 1;  // Global flag to control data parsing, enabled by default
 int verbose = 0;     // Global verbose flag, disabled by default
@@ -116,13 +116,13 @@ void create_default_config_file() {
         fprintf(file, "percentage_change=%.1f\n\n", DEFAULT_PERCENTAGE_CHANGE);
 
         fprintf(file, "# The threshold for FEC recovery. If fec_recovery exceeds this value, /usr/bin/channels.sh 0 1000 will be called.\n");
-        fprintf(file, "fec_recovery_threshold=%d\n\n", DEFAULT_FEC_RECOVERY_THRESHOLD);
+        fprintf(file, "fec_recovery_threshold=%.1f\n\n", DEFAULT_FEC_RECOVERY_THRESHOLD);
 
         fprintf(file, "# The threshold for lost packages. If lost_packages exceeds this value, /usr/bin/channels.sh 0 1000 will be called.\n");
-        fprintf(file, "lost_packages_threshold=%d\n\n", DEFAULT_LOST_PACKAGES_THRESHOLD);
+        fprintf(file, "lost_packages_threshold=%.1f\n\n", DEFAULT_LOST_PACKAGES_THRESHOLD);
 
         fprintf(file, "# The UDP port to listen on for incoming data.\n");
-        fprintf(file, "udp_port=%d\n\n", DEFAULT_UDP_PORT);
+        fprintf(file, "udp_port=%.1f\n\n", DEFAULT_UDP_PORT);
 
         fprintf(file, "# Version History:\n");
         fprintf(file, "# %s: Initial configuration setup with timeouts, pause, and percentage change for RSSI.\n", DEFAULT_VERSION);
@@ -149,11 +149,11 @@ void load_config() {
                 continue;
             } else if (sscanf(line, "percentage_change=%lf", &percentage_change_threshold)) {
                 continue;
-            } else if (sscanf(line, "fec_recovery_threshold=%d", &fec_recovery_threshold)) {
+            } else if (sscanf(line, "fec_recovery_threshold=%lf", &fec_recovery_threshold)) {
                 continue;
-            } else if (sscanf(line, "lost_packages_threshold=%d", &lost_packages_threshold)) {
+            } else if (sscanf(line, "lost_packages_threshold=%lf", &lost_packages_threshold)) {
                 continue;
-            } else if (sscanf(line, "udp_port=%d", &udp_port)) {
+            } else if (sscanf(line, "udp_port=%lf", &udp_port)) {
                 continue;
             }
         }
@@ -211,9 +211,22 @@ void pause_parsing_for_duration() {
     if (verbose) {
         printf("Pausing parsing for %.1f seconds...\n", pause_duration);
     }
-    pause_parsing = 1;
-    sleep((int)pause_duration);  // Pause for the duration
-    pause_parsing = 0;
+    
+    int pause_seconds = (int)pause_duration;  // Extract the whole number part of pause_duration
+    int pause_microseconds = (pause_duration - pause_seconds) * 1000000;  // Get the fractional part
+    
+    // Use sleep() for whole seconds
+    if (pause_seconds > 0) {
+        sleep(pause_seconds);
+    }
+    
+    // Use usleep() for fractional part in microseconds
+    if (pause_microseconds > 0) {
+        usleep(pause_microseconds);
+    }
+    
+    pause_parsing = 0;  // Reset parsing flag
+    
     if (verbose) {
         printf("Resuming parsing after %.1f seconds...\n", pause_duration);
     }
@@ -399,9 +412,9 @@ int main(int argc, char* argv[]) {
     while ((opt = getopt_long(argc, argv, "p:", long_options, NULL)) != -1) {
         switch (opt) {
             case 'p':
-                udp_port = atoi(optarg);
+                udp_port = atof(optarg);  // Use atof to handle both integer and floating-point arguments
                 if (verbose) {
-                    printf("Using UDP port: %d\n", udp_port);
+                    printf("Using UDP port: %.1f\n", udp_port);
                 }
                 break;
             case 0:
@@ -417,7 +430,7 @@ int main(int argc, char* argv[]) {
     load_config();
 
     // Increment version patch and update the config file
-    log_change("Added support for special:start_record and special:stop_record.");
+    log_change("Unified handling of all numeric values in config file as doubles.");
 
     int sockfd;
     struct sockaddr_in server_addr;
@@ -434,7 +447,7 @@ int main(int argc, char* argv[]) {
 
     // Fill server information
     server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(udp_port);  // Use udp_port from config
+    server_addr.sin_port = htons((int)udp_port);  // Use udp_port from config, casted to int
     server_addr.sin_addr.s_addr = INADDR_ANY;
 
     // Bind the socket
