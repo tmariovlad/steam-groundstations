@@ -1,4 +1,9 @@
 # New Stuff!
+## Program descriptions
+https://docs.google.com/document/d/1P_OKkyAue6mr2ggJcz76MAWBqhfsa_EQ8rdO-CUnmiE/edit?usp=sharing
+https://docs.google.com/document/d/1Bv0OKzXTF1E6UFPxl-y6JiA3eLpU5YlebSxjosgMWIw/edit?usp=sharing
+
+
 ## Groundstation: /etc/wifibroadcast.cfg
 ```
 [common]
