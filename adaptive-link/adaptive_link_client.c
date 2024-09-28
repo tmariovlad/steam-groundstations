@@ -9,12 +9,17 @@
 #include <errno.h>       // For errno and EINTR
 #include <math.h>        // For fabs() function to calculate percentage difference
 
+// Constants
 #define CONFIG_FILE "config.cfg"
 #define DEFAULT_VERSION "0.1.0"
 #define DEFAULT_MISSING_MESSAGE_TIMEOUT 1.5
 #define DEFAULT_PAUSE_DURATION 5
 #define DEFAULT_RSSI_CALL_INTERVAL 6
-#define DEFAULT_PERCENTAGE_CHANGE 5.0  // Default percentage change for triggering RSSI calls
+#define DEFAULT_PERCENTAGE_CHANGE 5.0
+#define DEFAULT_ANTENNA_VALUE -105   // Default antenna value when missing
+#define DEFAULT_UDP_PORT 9999        // Default UDP port
+#define DEFAULT_FEC_RECOVERY_THRESHOLD 50  // Default FEC recovery threshold
+#define DEFAULT_LOST_PACKAGES_THRESHOLD 5  // Default lost packages threshold
 
 // Global configuration values
 char current_version[16] = DEFAULT_VERSION;
@@ -22,6 +27,8 @@ double missing_message_timeout = DEFAULT_MISSING_MESSAGE_TIMEOUT;
 double pause_duration = DEFAULT_PAUSE_DURATION;
 double rssi_call_interval = DEFAULT_RSSI_CALL_INTERVAL;
 double percentage_change_threshold = DEFAULT_PERCENTAGE_CHANGE;
+int fec_recovery_threshold = DEFAULT_FEC_RECOVERY_THRESHOLD;
+int lost_packages_threshold = DEFAULT_LOST_PACKAGES_THRESHOLD;
 
 int parse_data = 1;  // Global flag to control data parsing, enabled by default
 int verbose = 0;     // Global verbose flag, disabled by default
@@ -63,11 +70,15 @@ void create_default_config_file() {
         fprintf(file, "# If the change in RSSI exceeds this percentage, an update will be triggered.\n");
         fprintf(file, "percentage_change=%.1f\n\n", DEFAULT_PERCENTAGE_CHANGE);
 
+        fprintf(file, "# The threshold for FEC recovery. If fec_recovery exceeds this value, /usr/bin/channels.sh 0 1000 will be called.\n");
+        fprintf(file, "fec_recovery_threshold=%d\n\n", DEFAULT_FEC_RECOVERY_THRESHOLD);
+
+        fprintf(file, "# The threshold for lost packages. If lost_packages exceeds this value, /usr/bin/channels.sh 0 1000 will be called.\n");
+        fprintf(file, "lost_packages_threshold=%d\n\n", DEFAULT_LOST_PACKAGES_THRESHOLD);
+
         fprintf(file, "# Version History:\n");
         fprintf(file, "# %s: Initial configuration setup with timeouts, pause, and percentage change for RSSI.\n", DEFAULT_VERSION);
-
         fclose(file);
-        printf("Default configuration file created: %s\n", CONFIG_FILE);
     }
 }
 
@@ -90,6 +101,10 @@ void load_config() {
                 continue;
             } else if (sscanf(line, "percentage_change=%lf", &percentage_change_threshold)) {
                 continue;
+            } else if (sscanf(line, "fec_recovery_threshold=%d", &fec_recovery_threshold)) {
+                continue;
+            } else if (sscanf(line, "lost_packages_threshold=%d", &lost_packages_threshold)) {
+                continue;
             }
         }
         fclose(file);
@@ -104,6 +119,12 @@ void update_version_history(const char* reason) {
         fprintf(file, "# %s: %s\n", current_version, reason);
         fclose(file);
     }
+}
+
+// Log a version change with a short description of the change
+void log_change(const char* change_description) {
+    increment_patch_version(current_version);
+    update_version_history(change_description);
 }
 
 // Function to call /usr/bin/channels.sh
@@ -259,8 +280,8 @@ void process_message(const char* message) {
     int lost_packages = atoi(token);
     field_count++;
 
-    // Check if fec_recovery > 50 or lost_packages > 5
-    if (fec_recovery > 50 || lost_packages > 5) {
+    // Check if fec_recovery > fec_recovery_threshold or lost_packages > lost_packages_threshold
+    if (fec_recovery > fec_recovery_threshold || lost_packages > lost_packages_threshold) {
         // Call /usr/bin/channels.sh 0 1000 and pause for the duration specified in the config
         call_channels(1000);
         last_rssi_quality = 1000;  // Set rssi_link_quality to 1000
@@ -344,8 +365,7 @@ int main(int argc, char* argv[]) {
     load_config();
 
     // Increment version patch and update the config file
-    increment_patch_version(current_version);
-    update_version_history("Improved version history tracking with change descriptions");
+    log_change("Added configurable thresholds for fec_recovery and lost_packages.");
 
     int sockfd;
     struct sockaddr_in server_addr;
