@@ -1,5 +1,6 @@
 # New Stuff!
 ## Groundstation: /etc/wifibroadcast.cfg
+```
 [common]
 log_interval = 300 # To increase the updates from wfb_ng where we calculate the data sent to the drone.
 
@@ -10,7 +11,7 @@ streams = [{'name': 'video',   'stream_rx': 0x00, 'stream_tx': None, 'service_ty
            {'name': 'mavlink', 'stream_rx': 0x10, 'stream_tx': 0x90, 'service_type': 'mavlink', 'profiles': ['base', 'gs_base', 'mavlink', 'gs_mavlink']},
            {'name': 'adaptive_link', 'stream_rx': None, 'stream_tx': 0x30, 'service_type': 'udp_proxy', 'profiles': ['base', 'radio_base'], 'peer': 'listen://127.0.0.1:9999', 'keypair': '
            ]
-
+```
 ## Groundstation: Install python script, generate a config file and change it
 install adaptive_link.py in /usr/bin
 for now, run it manually with "adaptive-link.py --verbose" once to generate config.ini. Ctrl+C to exit. The config will be placed in the working directory of adaptive_link.py (/usr/bin in this case)
