@@ -8,8 +8,9 @@
 #include <getopt.h>      // For getopt_long()
 #include <errno.h>       // For errno and EINTR
 #include <math.h>        // For fabs() function to calculate percentage difference
+#include <sys/stat.h>    // For checking file existence
+#include <unistd.h>      // For unlink (deleting files)
 
-// Constants
 #define CONFIG_FILE "config.cfg"
 #define DEFAULT_VERSION "0.1.0"
 #define DEFAULT_MISSING_MESSAGE_TIMEOUT 1.5
@@ -20,6 +21,10 @@
 #define DEFAULT_UDP_PORT 9999        // Default UDP port
 #define DEFAULT_FEC_RECOVERY_THRESHOLD 50  // Default FEC recovery threshold
 #define DEFAULT_LOST_PACKAGES_THRESHOLD 5  // Default lost packages threshold
+
+// File paths for recording indicators
+#define RECORDING_STARTED_FILE "/tmp/recording_started"
+#define RECORDING_STOPPED_FILE "/tmp/recording_stopped"
 
 // Global configuration values
 char current_version[16] = DEFAULT_VERSION;
@@ -46,6 +51,45 @@ void increment_patch_version(char* version) {
     sscanf(version, "%d.%d.%d", &major, &minor, &patch);
     patch++;
     snprintf(current_version, sizeof(current_version), "%d.%d.%d", major, minor, patch);
+}
+
+// Function to check if a file exists
+int file_exists(const char *filename) {
+    struct stat buffer;
+    return (stat(filename, &buffer) == 0);
+}
+
+// Function to handle file operations for recording
+void handle_recording(const char *command) {
+    if (strcmp(command, "start_record") == 0) {
+        if (file_exists(RECORDING_STOPPED_FILE)) {
+            unlink(RECORDING_STOPPED_FILE);  // Delete recording_stopped if exists
+            if (verbose) {
+                printf("Deleted %s\n", RECORDING_STOPPED_FILE);
+            }
+        }
+        FILE *f = fopen(RECORDING_STARTED_FILE, "w");
+        if (f) {
+            fclose(f);
+            if (verbose) {
+                printf("Created %s\n", RECORDING_STARTED_FILE);
+            }
+        }
+    } else if (strcmp(command, "stop_record") == 0) {
+        if (file_exists(RECORDING_STARTED_FILE)) {
+            unlink(RECORDING_STARTED_FILE);  // Delete recording_started if exists
+            if (verbose) {
+                printf("Deleted %s\n", RECORDING_STARTED_FILE);
+            }
+        }
+        FILE *f = fopen(RECORDING_STOPPED_FILE, "w");
+        if (f) {
+            fclose(f);
+            if (verbose) {
+                printf("Created %s\n", RECORDING_STOPPED_FILE);
+            }
+        }
+    }
 }
 
 // Function to write default config file with descriptions if it doesn't exist
@@ -186,6 +230,8 @@ void process_command(const char* command) {
             printf("Received special command: RESUME. Resuming data parsing.\n");
         }
         parse_data = 1;
+    } else if (strcmp(command, "start_record") == 0 || strcmp(command, "stop_record") == 0) {
+        handle_recording(command);
     } else {
         if (verbose) {
             printf("Executing command: %s\n", command);
@@ -212,7 +258,8 @@ void process_message(const char* message) {
             char* command_to_run = strtok(NULL, ":");
             if (strcmp(token, "run_command") == 0 && command_to_run != NULL) {
                 process_command(command_to_run);
-            } else if (strcmp(token, "pause") == 0 || strcmp(token, "resume") == 0) {
+            } else if (strcmp(token, "pause") == 0 || strcmp(token, "resume") == 0 ||
+                       strcmp(token, "start_record") == 0 || strcmp(token, "stop_record") == 0) {
                 process_command(token);
             } else {
                 printf("Error: Unsupported special command\n");
@@ -370,7 +417,7 @@ int main(int argc, char* argv[]) {
     load_config();
 
     // Increment version patch and update the config file
-    log_change("Added configurable UDP port to the config file.");
+    log_change("Added support for special:start_record and special:stop_record.");
 
     int sockfd;
     struct sockaddr_in server_addr;
