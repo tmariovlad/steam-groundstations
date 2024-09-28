@@ -29,6 +29,7 @@ double rssi_call_interval = DEFAULT_RSSI_CALL_INTERVAL;
 double percentage_change_threshold = DEFAULT_PERCENTAGE_CHANGE;
 int fec_recovery_threshold = DEFAULT_FEC_RECOVERY_THRESHOLD;
 int lost_packages_threshold = DEFAULT_LOST_PACKAGES_THRESHOLD;
+int udp_port = DEFAULT_UDP_PORT;
 
 int parse_data = 1;  // Global flag to control data parsing, enabled by default
 int verbose = 0;     // Global verbose flag, disabled by default
@@ -76,6 +77,9 @@ void create_default_config_file() {
         fprintf(file, "# The threshold for lost packages. If lost_packages exceeds this value, /usr/bin/channels.sh 0 1000 will be called.\n");
         fprintf(file, "lost_packages_threshold=%d\n\n", DEFAULT_LOST_PACKAGES_THRESHOLD);
 
+        fprintf(file, "# The UDP port to listen on for incoming data.\n");
+        fprintf(file, "udp_port=%d\n\n", DEFAULT_UDP_PORT);
+
         fprintf(file, "# Version History:\n");
         fprintf(file, "# %s: Initial configuration setup with timeouts, pause, and percentage change for RSSI.\n", DEFAULT_VERSION);
         fclose(file);
@@ -104,6 +108,8 @@ void load_config() {
             } else if (sscanf(line, "fec_recovery_threshold=%d", &fec_recovery_threshold)) {
                 continue;
             } else if (sscanf(line, "lost_packages_threshold=%d", &lost_packages_threshold)) {
+                continue;
+            } else if (sscanf(line, "udp_port=%d", &udp_port)) {
                 continue;
             }
         }
@@ -334,7 +340,6 @@ void process_message(const char* message) {
 }
 
 int main(int argc, char* argv[]) {
-    int udp_port = DEFAULT_UDP_PORT;  // Set default UDP port
     int opt;
     
     // Option parsing
@@ -365,7 +370,7 @@ int main(int argc, char* argv[]) {
     load_config();
 
     // Increment version patch and update the config file
-    log_change("Added configurable thresholds for fec_recovery and lost_packages.");
+    log_change("Added configurable UDP port to the config file.");
 
     int sockfd;
     struct sockaddr_in server_addr;
@@ -382,7 +387,7 @@ int main(int argc, char* argv[]) {
 
     // Fill server information
     server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(udp_port);  // Use dynamic UDP port
+    server_addr.sin_port = htons(udp_port);  // Use udp_port from config
     server_addr.sin_addr.s_addr = INADDR_ANY;
 
     // Bind the socket
