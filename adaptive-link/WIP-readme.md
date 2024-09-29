@@ -14,7 +14,7 @@ log_interval = 300 # To increase the updates from wfb_ng where we calculate the 
 [gs]
 streams = [{'name': 'video',   'stream_rx': 0x00, 'stream_tx': None, 'service_type': 'udp_direct_rx',  'profiles': ['base', 'gs_base', 'video', 'gs_video']},
            {'name': 'mavlink', 'stream_rx': 0x10, 'stream_tx': 0x90, 'service_type': 'mavlink', 'profiles': ['base', 'gs_base', 'mavlink', 'gs_mavlink']},
-           {'name': 'adaptive_link', 'stream_rx': None, 'stream_tx': 0x30, 'service_type': 'udp_proxy', 'profiles': ['base', 'radio_base'], 'peer': 'listen://127.0.0.1:9999', 'keypair': '
+           {'name': 'adaptive_link', 'stream_rx': None, 'stream_tx': 0x30, 'service_type': 'udp_proxy', 'profiles': ['base', 'radio_base'], 'peer': 'listen://127.0.0.1:9999', 'keypair': 'gs.key'}
            ]
 ```
 ## Groundstation: Install python script, generate a config file and change it
