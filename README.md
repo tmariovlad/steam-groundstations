@@ -98,7 +98,7 @@ sudo mv gs.key /etc/
 
 wget https://github.com/OpenIPC/steam-groundstations/raw/master/master.cfg
 
-sudo mv -rf master.cfg /usr/lib/python3.11/site-packages/wfb_ng/conf/
+sudo mv master.cfg /usr/lib/python3.11/site-packages/wfb_ng/conf/
 
 sudo systemctl start wifibroadcast@gs
 
