@@ -90,7 +90,7 @@ sudo cp -rf lib/systemd/system/* /lib/systemd/system/
 
 sudo systemctl daemon-reload
 
-get default gs.key
+#get default gs.key
 
 wget https://github.com/OpenIPC/steam-groundstations/raw/master/gs.key
 
