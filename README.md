@@ -55,6 +55,9 @@ sudo pacman --sync --noconfirm linux-neptune-$(uname -r | grep -oP '(?<=neptune-
 
 sudo pacman --sync --noconfirm dkms
 
+sudo pacman --sync --noconfirm libevent
+
+
 #build rtl8812au
 cd
 
