@@ -100,6 +100,17 @@ wget https://github.com/OpenIPC/steam-groundstations/raw/master/master.cfg
 
 sudo mv master.cfg /usr/lib/python3.11/site-packages/wfb_ng/conf/
 
+
+#add gstreamer deps
+sudo pacman -Syu
+sudo pacman -S gstreamer gst-plugins-good gst-plugins-bad gst-plugins-base gst-plugins-ugly
+sudo pacman -S gst-libav
+sudo pacman -Syu gstreamer
+sudo pacman -S gstreamer gst-plugins-good gst-plugins-bad gst-plugins-base gst-libav
+sudo pacman -S gstreamer-vaapi
+sudo pacman -S libva-mesa-driver
+
+
 sudo systemctl start wifibroadcast@gs
 
 sudo systemctl status wifibroadcast@gs
